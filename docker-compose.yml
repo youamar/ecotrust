@@ -1,0 +1,51 @@
+services:
+  ecotrust:
+    build: .
+    image: ecotrust:latest
+    container_name: ecotrust
+    ports:
+      - "8000:8000"
+    environment:
+      ECOTRUST_DB: /data/ecotrust.db
+      # Uncomment to enable auth + nudge layer:
+      # ECOTRUST_API_KEY: change-me
+      # ECOTRUST_NUDGE_WEBHOOK_URL: https://hooks.slack.com/services/...
+    volumes:
+      - ecotrust_data:/data
+    restart: unless-stopped
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  mqtt-bridge:
+    build: .
+    image: ecotrust:latest
+    depends_on:
+      - ecotrust
+      - mqtt
+    environment:
+      ECOTRUST_MQTT_HOST: mqtt
+      ECOTRUST_API: http://ecotrust:8000
+    command: python -m backend.mqtt_bridge
+    restart: unless-stopped
+
+  # Optional: simulator publishing via MQTT (slide 10 production transport).
+  simulator:
+    build: .
+    image: ecotrust:latest
+    depends_on:
+      - ecotrust
+      - mqtt
+    environment:
+      ECOTRUST_MQTT_HOST: mqtt
+    command: python -m edge.sensor_simulator --api http://ecotrust:8000 --interval 3 --transport mqtt
+    restart: unless-stopped
+
+volumes:
+  ecotrust_data:

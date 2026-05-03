@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Trends — EcoTrust</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  body { background:#0b1220; color:#e2e8f0; }
+  .card { background:#111a2e; border:1px solid #1e293b; border-radius:14px; }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-7xl mx-auto p-6">
+  <header class="flex items-center justify-between mb-6">
+    <div>
+      <a href="/" class="text-sm text-emerald-400 hover:underline">← Dashboard</a>
+      <h1 class="text-2xl font-bold mt-1">Trends</h1>
+      <p class="text-slate-400 text-sm">Daily roll-ups · actual vs baseline · cost · CO₂ avoided</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <label class="text-sm text-slate-400">Window</label>
+      <select id="window" class="bg-slate-800 border border-slate-700 text-sm rounded px-2 py-1">
+        <option value="3">3 days</option>
+        <option value="7" selected>7 days</option>
+        <option value="14">14 days</option>
+        <option value="30">30 days</option>
+      </select>
+      <a href="/export/audit.csv?hours=720" class="text-xs text-slate-400 hover:text-emerald-400 underline ml-3">Export 30d CSV</a>
+    </div>
+  </header>
+
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">Total kWh Saved</div>
+      <div class="text-3xl font-bold text-emerald-400 mt-1" id="kpi-kwh">— kWh</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">CO₂ Avoided</div>
+      <div class="text-3xl font-bold mt-1" id="kpi-co2">— kg</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">RM Saved (energy only)</div>
+      <div class="text-3xl font-bold text-emerald-400 mt-1" id="kpi-rm">RM —</div>
+    </div>
+  </section>
+
+  <section class="card p-4 mb-6">
+    <h2 class="font-semibold mb-2">Daily kWh — Actual vs Baseline</h2>
+    <canvas id="kwhChart" height="100"></canvas>
+  </section>
+
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-4">
+      <h2 class="font-semibold mb-2">CO₂ Avoided Per Day</h2>
+      <canvas id="co2Chart" height="100"></canvas>
+    </div>
+    <div class="card p-4">
+      <h2 class="font-semibold mb-2">Cost Saved Per Day (RM)</h2>
+      <canvas id="rmChart" height="100"></canvas>
+    </div>
+  </section>
+</div>
+
+<script>
+let kwhChart, co2Chart, rmChart;
+const fmt = (n, d=1) => Number(n).toLocaleString(undefined, {maximumFractionDigits:d});
+
+async function load() {
+  const days = document.getElementById("window").value;
+  const data = await fetch(`/trends/daily?days=${days}`).then(r => r.json());
+  const labels = data.map(d => d.date.slice(5));
+  const actual = data.map(d => d.actual_kwh);
+  const base = data.map(d => d.baseline_kwh);
+  const co2 = data.map(d => d.avoided_kg);
+  const rm = data.map(d => d.baseline_rm - d.actual_rm);
+
+  document.getElementById("kpi-kwh").textContent = `${fmt(data.reduce((s,d)=>s+d.saved_kwh,0))} kWh`;
+  document.getElementById("kpi-co2").textContent = `${fmt(data.reduce((s,d)=>s+d.avoided_kg,0))} kg`;
+  document.getElementById("kpi-rm").textContent = `RM ${fmt(rm.reduce((a,b)=>a+b,0), 0)}`;
+
+  const baseOpts = (label) => ({
+    plugins: { legend: { labels: { color: "#cbd5e1" } } },
+    scales: {
+      x: { ticks: { color:"#94a3b8" }, grid:{ color:"#1e293b"} },
+      y: { ticks: { color:"#94a3b8" }, grid:{ color:"#1e293b"}, title:{display:true,text:label,color:"#94a3b8"} },
+    },
+  });
+
+  if (!kwhChart) {
+    kwhChart = new Chart(document.getElementById("kwhChart"), {
+      type:"bar",
+      data:{ labels, datasets:[
+        { label:"Baseline", data:base, backgroundColor:"rgba(148,163,184,0.5)" },
+        { label:"Actual",   data:actual, backgroundColor:"rgba(16,185,129,0.7)" },
+      ]}, options: baseOpts("kWh"),
+    });
+    co2Chart = new Chart(document.getElementById("co2Chart"), {
+      type:"line",
+      data:{ labels, datasets:[
+        { label:"kg CO₂ avoided", data:co2, borderColor:"#10b981",
+          backgroundColor:"rgba(16,185,129,0.25)", fill:true, tension:0.3 }
+      ]}, options: baseOpts("kg"),
+    });
+    rmChart = new Chart(document.getElementById("rmChart"), {
+      type:"line",
+      data:{ labels, datasets:[
+        { label:"RM saved", data:rm, borderColor:"#fbbf24",
+          backgroundColor:"rgba(251,191,36,0.25)", fill:true, tension:0.3 }
+      ]}, options: baseOpts("RM"),
+    });
+  } else {
+    [kwhChart, co2Chart, rmChart].forEach(c => c.data.labels = labels);
+    kwhChart.data.datasets[0].data = base; kwhChart.data.datasets[1].data = actual; kwhChart.update("none");
+    co2Chart.data.datasets[0].data = co2; co2Chart.update("none");
+    rmChart.data.datasets[0].data = rm; rmChart.update("none");
+  }
+}
+document.getElementById("window").addEventListener("change", load);
+load();
+</script>
+</body>
+</html>

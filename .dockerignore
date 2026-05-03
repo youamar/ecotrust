@@ -1,0 +1,10 @@
+.venv
+__pycache__
+*.pyc
+*.db
+.pytest_cache
+.git
+.github
+firmware
+*.md
+run.ps1

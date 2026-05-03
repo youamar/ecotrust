@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>EcoTrust — Zero-Trust Energy Ecosystem</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: radial-gradient(circle at top, #0b1220 0%, #050912 100%); color:#e2e8f0; min-height:100vh; }
+  .num { font-variant-numeric: tabular-nums; }
+  .glow { text-shadow: 0 0 24px rgba(16,185,129,0.5); }
+  .pillar { background: linear-gradient(180deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02)); border:1px solid rgba(16,185,129,0.3); border-radius:18px; }
+  .stat { background:#0f172a; border:1px solid #1e293b; border-radius:14px; }
+</style>
+</head>
+<body>
+<div class="max-w-6xl mx-auto p-8">
+
+  <header class="text-center pt-10 pb-12">
+    <div class="text-emerald-400 tracking-widest text-sm uppercase">UM Hackathon 2026 · Sustainable Energy</div>
+    <h1 class="text-6xl font-extrabold mt-3 glow">EcoTrust</h1>
+    <p class="text-xl text-slate-300 mt-3">The <b>Zero-Trust</b> Energy Ecosystem for the ESG Era</p>
+    <p class="italic text-emerald-400 mt-2">Let every kilowatt-hour have a name, a reason, and verifiable proof.</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="/" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold rounded-lg">Live Dashboard →</a>
+      <a href="/docs" class="px-5 py-2 border border-slate-600 rounded-lg">API</a>
+    </div>
+  </header>
+
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+    <div class="stat p-5">
+      <div class="text-slate-400 text-xs uppercase">Projected Monthly Savings</div>
+      <div class="text-4xl font-bold text-emerald-400 num mt-2" id="hero-savings">RM —</div>
+      <div class="text-sm text-slate-500" id="hero-pct">— % vs baseline · TNB Tariff C</div>
+    </div>
+    <div class="stat p-5">
+      <div class="text-slate-400 text-xs uppercase">Avoided CO₂ Emissions (24h)</div>
+      <div class="text-4xl font-bold num mt-2" id="hero-co2">— kg</div>
+      <div class="text-sm text-slate-500">Scope 2 · Bursa-ready evidence</div>
+    </div>
+    <div class="stat p-5">
+      <div class="text-slate-400 text-xs uppercase">Peak-Hour Demand Shaved</div>
+      <div class="text-4xl font-bold text-emerald-400 num mt-2" id="hero-peak">— kW</div>
+      <div class="text-sm text-slate-500">14:00–22:00 MPC window</div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
+    <div class="pillar p-6">
+      <div class="text-emerald-400 text-sm font-semibold uppercase">Identity</div>
+      <h3 class="text-xl font-bold mt-1">Spatial RBAC</h3>
+      <p class="text-slate-400 mt-2">Each room has authorized hours and a control tier. No movement equals power if the room isn't authorized to be live.</p>
+    </div>
+    <div class="pillar p-6">
+      <div class="text-emerald-400 text-sm font-semibold uppercase">Presence</div>
+      <h3 class="text-xl font-bold mt-1">Physical ToF</h3>
+      <p class="text-slate-400 mt-2">VL53L5CX 3-D human-outline sensing with ±2 cm depth — no facial recognition, no PDPA exposure, no tailgating.</p>
+    </div>
+    <div class="pillar p-6">
+      <div class="text-emerald-400 text-sm font-semibold uppercase">Context</div>
+      <h3 class="text-xl font-bold mt-1">Time × Tariff</h3>
+      <p class="text-slate-400 mt-2">MPC peak shaving against TNB Tariff C. Saving 10% of kWh can cut the bill by 25% — because the kW peak is the real enemy.</p>
+    </div>
+  </section>
+
+  <section class="stat p-6 mb-12">
+    <h2 class="text-lg font-semibold mb-4">Three barriers we bypass — without compromise</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+      <div>
+        <div class="text-rose-400 font-semibold">Legal · PDPA 2010 §4</div>
+        <p class="text-slate-300 mt-1">Identity-Presence Decoupling architecture. Two streams, no reverse linkage. <span class="text-slate-500">MyIPO provisional patent.</span></p>
+      </div>
+      <div>
+        <div class="text-rose-400 font-semibold">Hardware · BMS warranties</div>
+        <p class="text-slate-300 mt-1">We control what we own (relays, FCUs). We <i>advise</i> central HVAC. Fire, access, elevators — air-gapped.</p>
+      </div>
+      <div>
+        <div class="text-rose-400 font-semibold">Economics · Carbon certs</div>
+        <p class="text-slate-300 mt-1">We don't sell carbon credits. We sell <b>audit-ready compliance evidence</b> — Bursa Sustainability Reporting Guide 3rd Edition.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-12">
+    <h2 class="text-2xl font-bold text-center mb-6">One stack · Two stories · Three customer tiers</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="stat p-6">
+        <div class="text-slate-400 text-xs uppercase">Lite</div>
+        <h3 class="text-lg font-bold mt-1">Campus pilot</h3>
+        <ul class="text-sm text-slate-300 mt-3 space-y-1">
+          <li>• Energy savings only</li>
+          <li>• 2–6 week sales cycle</li>
+          <li>• Self-install</li>
+        </ul>
+        <div class="mt-4 text-2xl font-bold num">RM 3K<span class="text-sm text-slate-500"> ARR</span></div>
+      </div>
+      <div class="pillar p-6 -my-2 shadow-2xl">
+        <div class="flex items-center gap-2">
+          <div class="text-emerald-400 text-xs uppercase">Pro · The Sweet Spot</div>
+          <span class="bg-emerald-500 text-slate-900 text-xs font-bold px-2 py-0.5 rounded">FOCUS</span>
+        </div>
+        <h3 class="text-lg font-bold mt-1">Mid-market RM 50M–500M</h3>
+        <ul class="text-sm text-slate-300 mt-3 space-y-1">
+          <li>• Decision maker: COO + Sustainability Lead</li>
+          <li>• Energy savings + Scope 3 attestation</li>
+          <li>• 6–12 week deployment</li>
+        </ul>
+        <div class="mt-4 text-2xl font-bold text-emerald-400 num">RM 30K<span class="text-sm text-slate-500"> ARR</span></div>
+      </div>
+      <div class="stat p-6">
+        <div class="text-slate-400 text-xs uppercase">Enterprise</div>
+        <h3 class="text-lg font-bold mt-1">Bursa Main Market</h3>
+        <ul class="text-sm text-slate-300 mt-3 space-y-1">
+          <li>• Full supply chain GHG</li>
+          <li>• Custom BMS integrations</li>
+          <li>• White-glove onboarding</li>
+        </ul>
+        <div class="mt-4 text-2xl font-bold num">RM 150K+<span class="text-sm text-slate-500"> ARR</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stat p-6 mb-12">
+    <h2 class="text-lg font-semibold mb-4">Smarter than PIR · Lighter than BMS · Cleaner than CCTV-AI</h2>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-slate-400 border-b border-slate-700">
+          <th class="text-left py-2"></th>
+          <th class="py-2">PIR Sensor</th>
+          <th class="py-2">Legacy BMS</th>
+          <th class="py-2">CCTV-AI</th>
+          <th class="py-2 text-emerald-400">EcoTrust</th>
+        </tr>
+      </thead>
+      <tbody class="text-center">
+        <tr class="border-b border-slate-800">
+          <td class="text-left py-2">Accuracy</td><td>⚠️</td><td>✓</td><td>⚠️ variable</td><td class="text-emerald-400">✓</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="text-left py-2">PDPA compliant</td><td>✗</td><td>✗</td><td>⚠️ high risk</td><td class="text-emerald-400">✓</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="text-left py-2">Peak shaving</td><td>✗</td><td>✓</td><td>✗</td><td class="text-emerald-400">✓</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="text-left py-2">Deploy time</td><td>✓</td><td>⚠️ long</td><td>⚠️ moderate</td><td class="text-emerald-400">✓ &lt; 2h</td>
+        </tr>
+        <tr class="border-b border-slate-800">
+          <td class="text-left py-2">ESG reporting</td><td>✗</td><td>⚠️ partial</td><td>⚠️ limited</td><td class="text-emerald-400">✓ Bursa-ready</td>
+        </tr>
+        <tr>
+          <td class="text-left py-2">Initial CapEx</td><td>✓</td><td>✗</td><td>✗</td><td class="text-amber-400">⚠️ ROI &lt; 18 mo</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="stat p-6 mb-12">
+    <h2 class="text-lg font-semibold mb-2">Every ringgit invested returns RM 4.2 in 18 months</h2>
+    <p class="text-slate-400 text-sm mb-4">Pro Tier · 2 000 m² office</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div>
+        <div class="flex justify-between py-1 border-b border-slate-800"><span>Hardware deployment</span><span class="text-rose-400">−RM 17 200</span></div>
+        <div class="flex justify-between py-1 border-b border-slate-800"><span>SaaS subscription</span><span class="text-rose-400">−RM 28 800</span></div>
+        <div class="flex justify-between py-1 border-b border-slate-800"><span>Power savings</span><span class="text-emerald-400">+RM 36 000</span></div>
+        <div class="flex justify-between py-1 font-bold"><span>Net client return</span><span class="text-emerald-400">+RM 96 000</span></div>
+      </div>
+      <div class="bg-emerald-500/10 border border-emerald-500/40 rounded-lg p-4 flex flex-col justify-center">
+        <div class="text-3xl font-bold text-emerald-400 num">2.1×</div>
+        <div class="text-sm text-slate-400">Client ROI in 18 months · EcoTrust gross profit RM 24 000/customer</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-12">
+    <h2 class="text-lg font-semibold text-center mb-6">Team</h2>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center text-sm">
+      <div class="stat p-4"><div class="font-bold">Chang Kai Yang</div><div class="text-slate-500">Project Manager</div></div>
+      <div class="stat p-4"><div class="font-bold">Yau Zhi Xiong</div><div class="text-slate-500">Hardware / Edge</div></div>
+      <div class="stat p-4"><div class="font-bold">Joseph Ang</div><div class="text-slate-500">Full-stack / Dashboard</div></div>
+      <div class="stat p-4"><div class="font-bold">Ngiam Kian Peng</div><div class="text-slate-500">Business / Compliance</div></div>
+      <div class="stat p-4"><div class="font-bold">Wong Kar Chun</div><div class="text-slate-500">UI / UX</div></div>
+    </div>
+  </section>
+
+  <section class="text-center mb-10">
+    <p class="text-slate-400">Ready to plug in. <span class="text-emerald-400">RM 430 hardware per room.</span> Deployment under 2 hours. ROI under 18 months.</p>
+    <p class="text-emerald-400 font-bold mt-2">EcoTrust — Powering the buildings the future forgot.</p>
+  </section>
+
+</div>
+
+<script>
+async function load() {
+  const [tariff, ghg, peak] = await Promise.all([
+    fetch("/tariff/projection").then(r => r.json()),
+    fetch("/ghg/scope2").then(r => r.json()),
+    fetch("/peak/savings").then(r => r.json()),
+  ]);
+  const fmt = (n, d=0) => Number(n).toLocaleString(undefined, { maximumFractionDigits: d });
+  document.getElementById("hero-savings").textContent = `RM ${fmt(tariff.savings_rm)}`;
+  document.getElementById("hero-pct").textContent = `${fmt(tariff.savings_pct, 1)} % vs baseline · TNB Tariff C`;
+  document.getElementById("hero-co2").textContent = `${fmt(ghg.avoided_kg, 1)} kg`;
+  const shaved = Math.max(0, peak.peak_baseline_kw - peak.peak_actual_kw);
+  document.getElementById("hero-peak").textContent = `${fmt(shaved, 1)} kW`;
+}
+load();
+</script>
+</body>
+</html>

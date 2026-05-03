@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Compliance — EcoTrust</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#0b1220; color:#e2e8f0; }
+  .card { background:#111a2e; border:1px solid #1e293b; border-radius:14px; }
+  .ctrl { background:#0f172a; border-left:3px solid #10b981; }
+  .badge { font-size:11px; padding:2px 8px; border-radius:999px; background:#064e3b; color:#6ee7b7; font-weight:600; }
+  .gap { background:#3f1d1d; color:#fcd34d; }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-5xl mx-auto p-6">
+  <header class="mb-8">
+    <a href="/" class="text-sm text-emerald-400 hover:underline">← Dashboard</a>
+    <h1 class="text-3xl font-bold mt-2">Compliance Attestation</h1>
+    <p class="text-slate-400 mt-1">
+      Architectural controls mapped to ISO/IEC 27001:2022 · IEC 62443-3-3 · PDPA Malaysia 2010 ·
+      Bursa Sustainability Reporting Guide (3rd Edition).
+    </p>
+    <p class="text-xs text-amber-400 mt-2">
+      ⚠️ This is an architectural attestation, not a third-party certification.
+      It documents how EcoTrust is designed to satisfy each clause — useful for
+      internal auditors evaluating the platform.
+    </p>
+  </header>
+
+  <!-- PDPA -->
+  <section class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">PDPA Malaysia 2010</h2>
+      <span class="badge">Architectural compliance</span>
+    </div>
+    <div class="space-y-3">
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">§4 Personal Data — General Principle</div>
+        <div class="text-sm text-slate-300 mt-1">No personal identifiers stored. Edge gateway emits only <code>{room_id, headcount, confidence}</code>. See <code>backend/models.py::SensorEvent</code> — there is no person FK, no badge ID, no facial vector.</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">§5 Notice & Choice</div>
+        <div class="text-sm text-slate-300 mt-1">No notice required because no personal data is collected. ToF range frames never leave the edge (slide 6 patent: Identity-Presence Decoupling).</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">§9 Retention</div>
+        <div class="text-sm text-slate-300 mt-1">Sensor events are aggregate counts only. Retention policy configurable; default audit window 30 days for compliance evidence.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ISO 27001 -->
+  <section class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">ISO/IEC 27001:2022 — Information Security</h2>
+      <span class="badge">Architectural compliance</span>
+    </div>
+    <div class="space-y-3">
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">A.5.15 Access Control</div>
+        <div class="text-sm text-slate-300 mt-1">API key gating on write paths (<code>POST/DELETE /override</code>, <code>POST /rooms/.../budget</code>, <code>POST /nudge/test</code>). Read paths are unauthenticated by design (compliance dashboards are observe-only).</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">A.8.16 Monitoring Activities</div>
+        <div class="text-sm text-slate-300 mt-1">Every power decision is logged with full reason in <code>PowerDecision</code>. Queryable via <code>/audit</code>, exportable as CSV. SSE stream provides real-time visibility.</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">A.5.30 ICT Readiness for Business Continuity</div>
+        <div class="text-sm text-slate-300 mt-1">Edge gateway degrades to local autonomy if the network drops (firmware fail-safe holds last relay state). Physical wall switch overrides the AI 24/7 (slide 17).</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">A.8.28 Secure Coding</div>
+        <div class="text-sm text-slate-300 mt-1">Parametrized SQLAlchemy ORM (no string SQL). Pydantic validation on every ingress. 33-test pytest suite gates every CI build.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- IEC 62443 -->
+  <section class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">IEC 62443-3-3 — Industrial Automation Security</h2>
+      <span class="badge">Architectural compliance</span>
+    </div>
+    <div class="space-y-3">
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">SR 1.1 / 1.2 Identification & Authentication</div>
+        <div class="text-sm text-slate-300 mt-1">Each edge node authenticates via deployment-time API key (or MQTT TLS client cert in production transport). Per-room <code>ECOTRUST_ROOM_ID</code> binds firmware to RBAC.</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">SR 5.1 Network Segmentation</div>
+        <div class="text-sm text-slate-300 mt-1">Slide 7's "Strictly Untouched" tier is enforced in code: <code>decision_engine.evaluate()</code> short-circuits for <code>control_tier="untouched"</code>. Fire safety, elevators, and main access are physically air-gapped — EcoTrust never writes to those circuits.</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">SR 7.6 Network and Security Configuration Settings</div>
+        <div class="text-sm text-slate-300 mt-1">No BMS write authority required (slide 7). EcoTrust only drives smart relays and FCUs it owns; it <em>advises</em> central HVAC via the notifications endpoint without touching BACnet/Modbus directly. <strong>No fault blame, no voided OEM warranty.</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bursa -->
+  <section class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">Bursa Sustainability Reporting Guide (3rd Edition)</h2>
+      <span class="badge">Architectural compliance</span>
+    </div>
+    <div class="space-y-3">
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">GHG Protocol Scope 2 — Location-Based</div>
+        <div class="text-sm text-slate-300 mt-1">Calculated continuously: kWh × 0.585 kgCO₂e/kWh (TNB Grid 2024). Endpoint <code>/ghg/scope2</code>; one-click PDF at <code>/export/scope2.pdf</code>.</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">Audit Trail — Verifiable Evidence</div>
+        <div class="text-sm text-slate-300 mt-1">Every kWh has a name (room), a reason (the three-pillar decision log), and verifiable proof (immutable PowerDecision rows + CSV export).</div>
+      </div>
+      <div class="ctrl p-3 rounded">
+        <div class="font-semibold">Common Sustainability Matters — Energy</div>
+        <div class="text-sm text-slate-300 mt-1">Per-tenant energy attribution via <code>/tenants/attribution</code> open API. Daily kWh budgets per department and per room with breach alerts.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-3">Honest gaps</h2>
+    <p class="text-slate-400 text-sm mb-3">Following the deck's spirit of zero-trust and full disclosure, here is what we have <em>not</em> implemented:</p>
+    <div class="space-y-2">
+      <div class="flex gap-3"><span class="badge gap">CERT</span><span class="text-sm">Third-party ISO 27001 / IEC 62443 audits — not yet engaged. Architectural controls are in place; certification is a Phase 2 commercialization step.</span></div>
+      <div class="flex gap-3"><span class="badge gap">CRYPTO</span><span class="text-sm">MQTT-over-TLS transport defined but production rollout uses HTTP for the hackathon demo. Swap in <code>PubSubClient</code> + Mosquitto for SR 4.1 transport encryption.</span></div>
+      <div class="flex gap-3"><span class="badge gap">ML</span><span class="text-sm">Edge inference uses a centroid heuristic; production target is TFLite-Micro CNN for human/object disambiguation.</span></div>
+    </div>
+  </section>
+
+  <p class="text-slate-500 text-xs text-center mt-8">
+    EcoTrust — Architectural compliance attested {{ today }}. For a third-party audit packet, contact the team.
+  </p>
+
+</div>
+</body>
+</html>

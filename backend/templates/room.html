@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>{{ room.name }} — EcoTrust</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  body { background:#0b1220; color:#e2e8f0; }
+  .card { background:#111a2e; border:1px solid #1e293b; border-radius:14px; }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-6xl mx-auto p-6">
+  <header class="flex items-center justify-between mb-6">
+    <div>
+      <a href="/" class="text-sm text-emerald-400 hover:underline">← Dashboard</a>
+      <h1 class="text-2xl font-bold mt-1">{{ room.name }}</h1>
+      <p class="text-slate-400 text-sm">
+        Floor {{ room.floor }} · {{ room.department }} · tier <b>{{ room.control_tier }}</b> ·
+        {{ room.area_m2 }} m² · {{ room.rated_kw }} kW rated ·
+        authorized {{ room.authorized_start_hour }}:00–{{ room.authorized_end_hour }}:00
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button class="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold rounded-lg"
+              onclick="setOverride(true)">Force GRANT 4h</button>
+      <button class="px-3 py-2 bg-rose-500 hover:bg-rose-400 text-slate-900 font-semibold rounded-lg"
+              onclick="setOverride(false)">Force DENY 4h</button>
+      <button class="px-3 py-2 border border-slate-700 rounded-lg" onclick="clearOver()">Clear</button>
+    </div>
+  </header>
+
+  <section class="card p-4 mb-6">
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="font-semibold">Power & Occupancy — last 6 hours</h2>
+      <select id="window" class="bg-slate-800 border border-slate-700 text-sm rounded px-2 py-1">
+        <option value="1">1h</option><option value="3">3h</option>
+        <option value="6" selected>6h</option><option value="24">24h</option>
+      </select>
+    </div>
+    <canvas id="chart" height="100"></canvas>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="font-semibold mb-3">Decision Audit — algorithmic transparency</h2>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-slate-400 text-left border-b border-slate-700">
+        <th class="py-2">Time</th><th>Verdict</th><th>kW</th><th>Headcount</th><th>Reason</th>
+      </tr></thead>
+      <tbody id="audit"></tbody>
+    </table>
+    </div>
+  </section>
+</div>
+
+<script>
+const ROOM_ID = {{ room.id }};
+let chart;
+const fmt = n => Number(n).toFixed(2);
+
+async function load() {
+  const hours = document.getElementById("window").value;
+  const [ts, audit] = await Promise.all([
+    fetch(`/room/${ROOM_ID}/timeseries?hours=${hours}`).then(r => r.json()),
+    fetch(`/audit?room_id=${ROOM_ID}&limit=80`).then(r => r.json()),
+  ]);
+  const labels = ts.map(d => new Date(d.timestamp).toLocaleTimeString());
+  const applied = ts.map(d => d.applied_kw);
+  const base = ts.map(d => d.baseline_kw);
+  const head = ts.map(d => d.headcount);
+  if (!chart) {
+    chart = new Chart(document.getElementById("chart"), {
+      data: {
+        labels,
+        datasets: [
+          { type: "line", label: "Baseline kW", data: base, borderColor: "#94a3b8",
+            backgroundColor: "rgba(148,163,184,0.15)", fill: true, tension: 0.3, yAxisID: "y" },
+          { type: "line", label: "Applied kW", data: applied, borderColor: "#10b981",
+            backgroundColor: "rgba(16,185,129,0.25)", fill: true, tension: 0.3, yAxisID: "y" },
+          { type: "bar", label: "Headcount", data: head,
+            backgroundColor: "rgba(96,165,250,0.6)", yAxisID: "y1" },
+        ],
+      },
+      options: {
+        plugins: { legend: { labels: { color: "#cbd5e1" } } },
+        scales: {
+          x: { ticks: { color: "#94a3b8", maxTicksLimit: 12 }, grid: { color: "#1e293b" } },
+          y: { position: "left", ticks: { color: "#10b981" }, grid: { color: "#1e293b" }, title: { display: true, text: "kW", color: "#10b981" } },
+          y1: { position: "right", ticks: { color: "#60a5fa" }, grid: { drawOnChartArea: false }, title: { display: true, text: "people", color: "#60a5fa" } },
+        },
+      },
+    });
+  } else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = base;
+    chart.data.datasets[1].data = applied;
+    chart.data.datasets[2].data = head;
+    chart.update("none");
+  }
+  document.getElementById("audit").innerHTML = audit.map(a => `
+    <tr class="border-b border-slate-800">
+      <td class="py-1 text-slate-400">${new Date(a.timestamp).toLocaleTimeString()}</td>
+      <td class="py-1 ${a.granted ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${a.granted ? 'GRANT' : 'DENY'}</td>
+      <td class="py-1">${fmt(a.applied_kw)}</td>
+      <td class="py-1">${a.headcount}</td>
+      <td class="py-1 text-slate-300 text-xs">${a.reason}</td>
+    </tr>`).join("");
+}
+
+async function setOverride(grant) {
+  const reason = prompt(`${grant ? 'GRANT' : 'DENY'} reason?`, "manual override");
+  if (reason === null) return;
+  await fetch(`/override/${ROOM_ID}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ granted: grant, ttl_seconds: 4 * 3600, reason }),
+  });
+  load();
+}
+async function clearOver() {
+  await fetch(`/override/${ROOM_ID}`, { method: "DELETE" });
+  load();
+}
+
+document.getElementById("window").addEventListener("change", load);
+load();
+
+// Live refresh on SSE decision events for this room
+const es = new EventSource("/events");
+es.addEventListener("decision", e => {
+  try { if (JSON.parse(e.data).room_id === ROOM_ID) load(); } catch {}
+});
+es.addEventListener("override", load);
+setInterval(load, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>EcoTrust — Compliance Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  body { background:#0b1220; color:#e2e8f0; }
+  .card { background:#111a2e; border:1px solid #1e293b; border-radius:14px; }
+  .pill { font-size:11px; padding:2px 8px; border-radius:999px; font-weight:600;}
+  .grant { background:#064e3b; color:#6ee7b7; }
+  .deny  { background:#3f1d1d; color:#fca5a5; }
+  .over  { background:#78350f; color:#fcd34d; }
+  .heat  { transition:background-color .4s ease, transform .15s ease; }
+  .heat:hover { transform: translateY(-2px); }
+  .sev-warning { color:#fbbf24; }
+  .sev-advisory { color:#60a5fa; }
+  .sev-info { color:#94a3b8; }
+  .flash { animation: flash 0.6s ease; }
+  @keyframes flash { 0% { background:#10b98140; } 100% { background:transparent; } }
+  .live-dot { width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block; box-shadow:0 0 8px #10b981; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-7xl mx-auto p-6">
+  <header class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-emerald-400">EcoTrust</h1>
+      <p class="text-slate-400 text-sm">Zero-Trust Energy Ecosystem · Compliance Dashboard</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-slate-400"><span class="live-dot"></span> <span id="live-status">connecting…</span></span>
+      <a href="/trends" class="px-3 py-2 border border-slate-700 rounded-lg hover:border-emerald-500">Trends</a>
+      <a href="/pitch" class="px-3 py-2 border border-slate-700 rounded-lg hover:border-emerald-500">Pitch</a>
+      <a href="/compliance" class="px-3 py-2 border border-slate-700 rounded-lg hover:border-emerald-500">Compliance</a>
+      <a href="/export/scope2.pdf" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold rounded-lg">Export Bursa PDF</a>
+      <a href="/docs" class="px-3 py-2 border border-slate-700 rounded-lg">API</a>
+    </div>
+  </header>
+
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">Avoided Emissions (24h)</div>
+      <div class="text-3xl font-bold text-emerald-400 mt-1" id="kpi-avoided">— kg</div>
+      <div class="text-xs text-slate-500 mt-1">EF 0.585 kgCO₂e/kWh (TNB 2024)</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">Scope 2 Emissions (24h)</div>
+      <div class="text-3xl font-bold mt-1" id="kpi-scope2">— kg</div>
+      <div class="text-xs text-slate-500 mt-1" id="kpi-kwh">— kWh consumed</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">Peak Shaving</div>
+      <div class="text-3xl font-bold text-emerald-400 mt-1" id="kpi-md">RM —</div>
+      <div class="text-xs text-slate-500 mt-1" id="kpi-peak">— kW peak vs — kW baseline</div>
+    </div>
+    <div class="card p-4">
+      <div class="text-slate-400 text-xs uppercase">Active Rooms</div>
+      <div class="text-3xl font-bold mt-1" id="kpi-rooms">—</div>
+      <div class="text-xs text-slate-500 mt-1" id="kpi-grants">— granted now</div>
+    </div>
+  </section>
+
+  <section class="card p-4 mb-6 border-emerald-500/40">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="text-slate-400 text-xs uppercase">Projected TNB Tariff C Bill (this month)</div>
+        <div class="flex items-baseline gap-3 mt-1">
+          <span class="text-3xl font-bold" id="tariff-actual">RM —</span>
+          <span class="text-sm text-slate-400">vs baseline</span>
+          <span class="text-lg text-slate-500 line-through" id="tariff-baseline">RM —</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">
+          Energy <span id="tariff-energy">—</span> · MD <span id="tariff-md">—</span> ·
+          Capacity <span id="tariff-cap">—</span> · KWBB + 8% Service Tax
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-emerald-400 text-3xl font-bold" id="tariff-savings">RM —</div>
+        <div class="text-xs text-emerald-400" id="tariff-pct">— % saved</div>
+        <a href="/export/audit.csv?hours=24" class="text-xs text-slate-400 hover:text-emerald-400 underline mt-1 inline-block">Download audit CSV</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    <div class="card p-4 lg:col-span-2">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="font-semibold">Daily Power — Actual vs Baseline</h2>
+        <span class="text-xs text-slate-500">kW per hour · MPC peak window 14:00-22:00</span>
+      </div>
+      <canvas id="powerChart" height="120"></canvas>
+    </div>
+    <div class="card p-4">
+      <h2 class="font-semibold mb-2">Department Leaderboard</h2>
+      <table class="w-full text-sm">
+        <thead><tr class="text-slate-400 text-left">
+          <th class="py-1">#</th><th>Department</th><th class="text-right">Saved %</th>
+        </tr></thead>
+        <tbody id="lb-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card p-4 mb-6">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-semibold">Building Floorplan — Live RBAC Status</h2>
+      <span class="text-xs text-slate-500">Hover for detail · click to open room</span>
+    </div>
+    <svg id="floorplan" viewBox="0 0 900 360" class="w-full h-auto"></svg>
+  </section>
+
+  <section class="card p-4 mb-6">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-semibold">Real-time Occupancy & RBAC Status</h2>
+      <span class="text-xs text-slate-500">Click a room to drill down</span>
+    </div>
+    <div id="heatmap" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+  </section>
+
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div class="card p-4">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="font-semibold">Facility Engineer Notifications</h2>
+        <span class="text-xs text-slate-500" id="notif-count">0 open</span>
+      </div>
+      <div id="notif-list" class="space-y-2 max-h-72 overflow-y-auto"></div>
+    </div>
+    <div class="card p-4">
+      <h2 class="font-semibold mb-3">GHG Scope 2 Auto-Calc</h2>
+      <table class="w-full text-sm" id="ghg-tbl"><tbody></tbody></table>
+      <p class="text-xs text-slate-500 mt-3">
+        <b>Privacy by design:</b> ToF physical presence + sanitized RBAC; no employee identity stored. PDPA 2010 §4 compliant.
+      </p>
+    </div>
+  </section>
+
+  <section class="card p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-semibold">Audit Trail · Algorithmic Transparency</h2>
+      <span class="text-xs text-slate-500">Why each kWh was granted or denied — last 30 decisions</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="text-slate-400 text-left border-b border-slate-700">
+          <th class="py-2">Time</th><th>Room</th><th class="text-center">Identity</th>
+          <th class="text-center">Presence</th><th class="text-center">Context</th>
+          <th class="text-right">kW</th><th>Verdict</th>
+        </tr></thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script src="/static/dashboard.js"></script>
+</body>
+</html>
